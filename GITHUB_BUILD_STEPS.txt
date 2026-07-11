@@ -1,0 +1,16 @@
+ROUTEFORGE: CREATE THE WINDOWS EXE FOR FREE
+
+1. Create a free GitHub account if needed.
+2. Create a new repository named RouteForge.
+3. Upload every file and folder from this package.
+4. Open the repository's Actions tab.
+5. Select "Build RouteForge for Windows."
+6. Press "Run workflow."
+7. When it finishes, open the completed run.
+8. Download the RouteForge-Windows-x64 artifact.
+9. Extract the ZIP and run RouteForge.exe on Windows.
+
+Windows may show a SmartScreen warning because this free build is not code-signed.
+Choose More info, then Run anyway only when you built the repository yourself.
+
+WireGuard for Windows is required only when using relay profiles.
