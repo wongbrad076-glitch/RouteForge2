@@ -1,0 +1,61 @@
+name: Build RouteForge for Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Find RouteForge project
+        id: project
+        shell: pwsh
+        run: |
+          $project = Get-ChildItem -Path . -Filter RouteForge.csproj -Recurse |
+            Select-Object -First 1
+
+          if (-not $project) {
+            Write-Host "Repository contents:"
+            Get-ChildItem -Path . -Recurse | Select-Object FullName
+            throw "RouteForge.csproj was not found anywhere in the repository."
+          }
+
+          $relativePath = Resolve-Path -Relative $project.FullName
+          Write-Host "Found project at: $relativePath"
+          "path=$relativePath" >> $env:GITHUB_OUTPUT
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore "${{ steps.project.outputs.path }}"
+
+      - name: Publish standalone Windows app
+        shell: pwsh
+        run: |
+          dotnet publish "${{ steps.project.outputs.path }}" `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -o publish
+
+      - name: Package app
+        shell: pwsh
+        run: Compress-Archive -Path publish\* -DestinationPath RouteForge-Windows-x64.zip -Force
+
+      - name: Upload downloadable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: RouteForge-Windows-x64
+          path: RouteForge-Windows-x64.zip
